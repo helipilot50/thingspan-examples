@@ -1,5 +1,210 @@
 package com.objy.thingspan.examples.simple
 
+import java.util.Date
+
+import com.objy.data.ClassBuilder
+import com.objy.data.Encoding
+import com.objy.data.Instance
+import com.objy.data.LogicalType
+import com.objy.db.Date
+import com.objy.data.Storage
+import com.objy.data.Variable
+import com.objy.data.dataSpecificationBuilder.IntegerSpecificationBuilder
+import com.objy.data.dataSpecificationBuilder.ReferenceSpecificationBuilder
+import com.objy.db.Connection
+import com.objy.db.Objy
+import com.objy.db.Transaction
+import com.objy.db.TransactionMode
+import com.objy.expression.ExpressionTreeBuilder
+import com.objy.expression.OperatorExpressionBuilder
+import com.objy.expression.language.LanguageRegistry
+import com.objy.statement.Statement
+import com.objy.data.schemaProvider.SchemaProvider
+import com.objy.data.Reference
+
+
+/*
+ * Before you run this example, create a federated database in the directory 'data'
+ * 
+ * $ objy createFd -fdname simple -fdDirPath data
+ * Objectivity/DB (TM) Create FD, Version: 12.0.0 develop May  3 2016
+ * Copyright (c) Objectivity, Inc 2012, 2016. All rights reserved.
+ * 
+ * Federated Database successfully created:
+ *   FD Dir Host      : flight1
+ *   FD Dir Path      : /simple/data
+ *   System DB file   : simple.fdb
+ *   Boot file        : simple.boot
+ *   Lock server host : flight1
+ * 
+ * 
+ */
 object SimpleAPI {
   
+  var connection: Connection = null
+  
+  def main(args: Array[String]) = {
+    /*
+     * Start ThingSpan
+     */
+    Objy.startup()
+    
+    /*
+     * Connect to the database
+     */
+    if (connection == null)
+      connection = new Connection("data/simple.boot")
+    
+
+    
+    /*
+     * Create a simple Schema
+     */
+    
+    val provider = SchemaProvider.getDefaultPersistentProvider()
+    
+    var tx = new Transaction(TransactionMode.READ_UPDATE)
+    try {
+      val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
+          .addAttribute(LogicalType.STRING, "firstName")
+          .addAttribute(LogicalType.STRING, "lastName")
+          .addAttribute(LogicalType.DATE, "birthDate")
+          .addAttribute(LogicalType.INTEGER, "shoeSize")
+          
+      addToOneRelationship(personClassBuilder, "address", "simple.Address")
+      
+      val addressClassBuilder = new ClassBuilder("simple.Address").setSuperclass("ooObj")
+          .addAttribute(LogicalType.STRING, "street")
+          .addAttribute(LogicalType.STRING, "city")
+          .addAttribute(LogicalType.STRING, "state")
+          .addAttribute(LogicalType.STRING, "country")
+          
+      val addressClass = addressClassBuilder.build()
+      val personClass = personClassBuilder.build();
+             
+      provider.represent(addressClass);
+      provider.represent(personClass);
+      
+      tx.commit();
+      
+  	} finally{
+  		tx.close()
+  	}
+
+    /*
+     * Write some data
+     */
+  	tx = new Transaction(TransactionMode.READ_UPDATE)
+    try {
+      // Get the persistent class for Address
+      val addressClass = com.objy.data.Class.lookupClass("simple.Address")
+      // Create an persistent instance
+      var address = Instance.createPersistent(addressClass);
+      
+      // Add some attribute/field values to address
+      address.getAttributeValue("street").set("1 Bond St")
+      address.getAttributeValue("city").set("Ettalong Beach")
+      address.getAttributeValue("state").set("NSW")
+      address.getAttributeValue("country").set("Australia")
+
+      // Get the persistent class for Person
+      val personClass = com.objy.data.Class.lookupClass("simple.Person")
+      // Create an persistent instance
+      var person = Instance.createPersistent(personClass);
+
+      // Add some attribute/field values to person
+      person.getAttributeValue("firstName").set("John")
+      person.getAttributeValue("lastName").set("Smith")
+      person.getAttributeValue("birthDate").set(new com.objy.db.Date(1970, 1, 1))
+      person.getAttributeValue("shoeSize").set(12)
+      
+      // Relate address to person
+      person.getAttributeValue("address").set(new Reference(address))    
+
+      tx.commit()
+      
+  	} finally{
+  		tx.close()
+  	}
+  	
+    /*
+     * Read some data
+     */
+  	tx = new Transaction(TransactionMode.READ_ONLY)
+    try {
+      
+      val addressClass = com.objy.data.Class.lookupClass("simple.Address")
+      val personClass = com.objy.data.Class.lookupClass("simple.Person")
+
+      val lastName = "Smith"
+      
+      val opExp = new OperatorExpressionBuilder("From")
+            // fromObjects
+            .addLiteral(new Variable(personClass))
+            .addOperator(new OperatorExpressionBuilder("==")
+                .addObjectValue("lastName")
+                .addVariable(lastName))
+            .build()
+      
+      val exprTreeBuilder = new ExpressionTreeBuilder(opExp)
+			val exprTree = exprTreeBuilder.build(LanguageRegistry.lookupLanguage("DO"))
+			
+			val statement = new Statement(exprTree)
+			
+			val results = statement.execute()
+		
+			val pathItr = results.sequenceValue().iterator()
+			
+			while(pathItr.hasNext()){
+  			val path = pathItr.next()
+  			
+  			// get the person
+  			val personInstance = path.instanceValue()
+  			val lastName = personInstance.getAttributeValue("lastName").stringValue
+  			val firstName = personInstance.getAttributeValue("firstName").stringValue
+  			val shoeSize = personInstance.getAttributeValue("shoeSize").intervalValue
+  			val birthDate = personInstance.getAttributeValue("birthDate").dateValue
+  			println(s"Found $firstName $lastName")
+  			println(s"\tBirth Date: $birthDate")
+  			println(s"\tShoe Size: $shoeSize")
+  			
+  			// get the address
+  			val addressInstance = personInstance.getAttributeValue("address").instanceValue
+  			val street = addressInstance.getAttributeValue("street").stringValue
+  			val city = addressInstance.getAttributeValue("city").stringValue
+  			val state = addressInstance.getAttributeValue("state").stringValue
+  			val country = addressInstance.getAttributeValue("country").stringValue
+  			println(s"Lives at:")
+  			println(s"\t$street")
+  			println(s"\t$city $state")
+  			println(s"\t$country")
+   			
+			}
+
+     
+      tx.commit();
+  	} finally{
+  		tx.close()
+  	}
+      
+    /*
+     * Stop ThingSpan
+     */
+    Objy.shutdown()
+  }
+  
+  private def addToOneRelationship(builder: ClassBuilder, attrName:String, otherClassName:String) {
+
+		val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
+	            .setEncoding(Encoding.Integer.UNSIGNED)
+	            .build()
+		   
+		val refSpecBuilder = new ReferenceSpecificationBuilder()
+				.setReferencedClass(otherClassName)
+				.setIdentifierSpecification(intSpec)
+		
+		val dataSpec = refSpecBuilder.build()
+		builder.addAttribute(attrName, dataSpec)
+	}
+
 }
