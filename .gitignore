@@ -1,2 +1,6 @@
 simple/scala/project/target
 simple/scala/target
+.Trash-1000
+*.fdb
+simple/spark/.settings
+simple/spark/target
