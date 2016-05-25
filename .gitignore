@@ -1,7 +1,2 @@
-/bin/
-ThingSpan-15.0.1-linux86_64.run
-.settings
-data
-project/project/target/config-classes
-project/target/config-classes
-project/target/resolution-cache/default/flights-build/scala_2.10
+simple/scala/project/target
+simple/scala/target
