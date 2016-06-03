@@ -177,8 +177,10 @@ object SimpleAPI {
   			println(s"\tBirth Date: $birthDate")
   			println(s"\tShoe Size: $shoeSize")
   			
-  			// get the address
-  			val addressInstance = personInstance.getAttributeValue("address").instanceValue()
+  			// get the reference to the address
+  			val addressRef = personInstance.getAttributeValue("address").referenceValue
+  			// get the object instance
+        val addressInstance = addressRef.getReferencedObject
   			val street = addressInstance.getAttributeValue("street").stringValue()
   			val city = addressInstance.getAttributeValue("city").stringValue()
   			val state = addressInstance.getAttributeValue("state").stringValue()
