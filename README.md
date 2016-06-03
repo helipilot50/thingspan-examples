@@ -1,6 +1,31 @@
 # ThingSpan Examples
 
-This repository contains some simple examples of how to use ThingSpan. 
+This repository contains some simple examples of how to use ThingSpan. Each example illistrates one or more ThingSpan features. As best as possible, each example is self contained and does not rely in data outside this repository. Each example avoids the use of features of programming languages or frameworks that could distract or confuse the reader.
+
+The repository is organised by levels:
+- Simple
+- Easy
+- Moderate
+- Advanced 
+- Impossibly complex (only for those who have no life :)
+
+Each level has subdirectories for you favorite language. If the language is not there, there is no example, so no whining. 
+
+For each example there will be a README describing how to build and run the example.
+
+Overtime, these examples will be added apon to form a more comprehensive set of tutorials.
+
+# Getting started
+
+Code examplecan be found at:
+https://github.com/helipilot50/thingspan-examples
+
+Clone the repository with:
+```bash
+	$ git clone https://github.com/helipilot50/thingspan-examples
+```
+The first example is at https://github.com/helipilot50/thingspan-examples/tree/master/simple.
+
 
 # What is ThingSpan
 ThingSpan is a petabyte-scalable graph distributed database platform designed specifically to allow applications to extract actionable insights from related data to enable real-time relationship discovery. 
