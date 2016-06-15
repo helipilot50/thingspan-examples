@@ -42,7 +42,7 @@ import com.objy.db.ObjectId
  */
 object SimpleAPI extends App {
   
-  var connection: Connection = null
+    var connection: Connection = null
   
     /*
      * Start ThingSpan - The ThingSpan library is written in C/C++, 
@@ -56,7 +56,6 @@ object SimpleAPI extends App {
     if (connection == null)
       connection = new Connection("../data/simple.boot")
     
-
     
     /*
      * Create a simple Schema

@@ -57,18 +57,24 @@ new Connection("../data/simple.boot")
 The constructor takes a single parameter that is a path to the "boot file".
 
 ### Creating Schema
+A schema is required for data governance, there several ways to create a schema. In this example we are using the Schema API to create a `Person` type and an `Address` type, with a relationship from `Person` to `Address`.
+
+Every operation on a ThingSpan database is done in the context of a Transaction.
 
 ```scala
     val provider = SchemaProvider.getDefaultPersistentProvider()
     /*
-     * Every operation in THingSpan is done withing a transaction
+     * Every operation in ThingSpan is done withing a transaction
      */
     var tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
-      /*
-       * Create the schema for a 'Person' type
-       */
-      val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
+```
+
+This code snippet creates a schema for the `Person` type by defining the super type, the attributes and the attribute types. Note the specific `builder` classes used to define an Long integer.
+
+```scala
+      val personClassBuilder = 
+      	new ClassBuilder("simple.Person").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "firstName")
           .addAttribute(LogicalType.STRING, "lastName")
           .addAttribute(LogicalType.DATE, "birthDate")
@@ -77,7 +83,9 @@ The constructor takes a single parameter that is a path to the "boot file".
       val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
 	            .setEncoding(Encoding.Integer.UNSIGNED)
 	            .build()
-		  
+```
+This next snippet creates a unidirectional relationship from `Person` to `Address`.
+```scala	  
 	    /*
 		   * create a reference from 'Person' to 'Address' 
 		   */
@@ -86,10 +94,10 @@ The constructor takes a single parameter that is a path to the "boot file".
   				.setIdentifierSpecification(intSpec)
   		val dataSpec = refSpecBuilder.build()
   		personClassBuilder.addAttribute("address", dataSpec)
+```
+This next code snippets creates a schema for the `Address` type by defining the super type, the attributes and the attribute types.
 
-  		/*
-  		 * Create the schema for an 'Address' type
-  		 */
+```scala
       val addressClassBuilder = new ClassBuilder("simple.Address").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "street")
           .addAttribute(LogicalType.STRING, "city")
@@ -98,13 +106,18 @@ The constructor takes a single parameter that is a path to the "boot file".
           
       val addressClass = addressClassBuilder.build()
       val personClass = personClassBuilder.build();
-      
+```
+The schema is saved in this code snippet.
+```scala      
       /*
        * save the schema
        */
       provider.represent(addressClass);
       provider.represent(personClass);
-      
+```
+
+Finally, the transaction is committed and closed.
+```scala      
       tx.commit();
       
   	} finally{
