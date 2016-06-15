@@ -4,3 +4,11 @@ simple/scala/target
 *.fdb
 simple/spark/.settings
 simple/spark/target
+simpleSchema.xml
+pmPM_V1-INTERNAL_G1_1.simple.DB
+pmV1-Default_1.simple.DB
+objydb-core-12.0.0.jar
+objydb-rest-12.0.0-all.jar
+ooexpr.jar
+oojava.jar
+spark-rdd-1.0.0.jar
