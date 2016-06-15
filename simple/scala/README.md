@@ -31,6 +31,39 @@ Run the following command and you will see output printed to the console.
 
 ## Discussion
 
+The example is a deliberately simple Scala program consisting of a single object `SimpleAPI` that extends the `App` trait. The Scala code is elementary so as not to distract you from understanding the ThingSpan low level API.
+
+### Connecting to ThingSpan
+The first step is to connect ThingSpan
+```scala
+    var connection: Connection = null
+  
+    /*
+     * Start ThingSpan - The ThingSpan library is written in C/C++, 
+     * this call performs the JNI binding
+     */
+    Objy.startup()
+    
+    /*
+     * Connect to the database
+     */
+    if (connection == null)
+      connection = new Connection("../data/simple.boot")
+```
+This statement `Objy.startup()` binds the Scala/Java API to the underlying implementation in C/C++. To connect to the database, create a `Connection` with 
+```scala
+new Connection("../data/simple.boot")
+```
+The constructor takes a single parameter that is a path to the "boot file".
+
+### Creating Schema
+
+### Writing data
+
+### Reading Data
+
+
+
 
 
 
