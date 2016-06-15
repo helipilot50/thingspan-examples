@@ -3,10 +3,10 @@
 This repository contains some simple examples of how to use ThingSpan. Each example illistrates one or more ThingSpan features. As best as possible, each example is self contained and does not rely in data outside this repository. Each example avoids the use of features of programming languages or frameworks that could distract or confuse the reader.
 
 The repository is organised by levels:
-- Simple
-- Easy
-- Moderate
-- Advanced 
+- [Simple](simple/README.md)
+- Easy - Future
+- Moderate - Future
+- Advanced - Future
 - Impossibly complex (only for those who have no life :)
 
 Each level has subdirectories for you favorite language. If the language is not there, there is no example, so no whining. 
@@ -24,7 +24,6 @@ Clone the repository with:
 ```bash
 	$ git clone https://github.com/helipilot50/thingspan-examples
 ```
-The first example is at https://github.com/helipilot50/thingspan-examples/tree/master/simple.
 
 
 # What is ThingSpan
