@@ -63,9 +63,6 @@ Every operation on a ThingSpan database is done in the context of a Transaction.
 
 ```scala
     val provider = SchemaProvider.getDefaultPersistentProvider()
-    /*
-     * Every operation in ThingSpan is done withing a transaction
-     */
     var tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
 ```
@@ -86,9 +83,6 @@ This code snippet creates a schema for the `Person` type by defining the super t
 ```
 This next snippet creates a unidirectional relationship from `Person` to `Address`.
 ```scala	  
-	    /*
-		   * create a reference from 'Person' to 'Address' 
-		   */
   		val refSpecBuilder = new ReferenceSpecificationBuilder()
   				.setReferencedClass("simple.Address")
   				.setIdentifierSpecification(intSpec)
@@ -109,9 +103,6 @@ This next code snippets creates a schema for the `Address` type by defining the 
 ```
 The schema is saved in this code snippet.
 ```scala      
-      /*
-       * save the schema
-       */
       provider.represent(addressClass);
       provider.represent(personClass);
 ```
@@ -127,7 +118,9 @@ Finally, the transaction is committed and closed.
 
 ### Writing data
 
+To create a persistent object, you retrieve the definition of the type. Using the factory of `Instance.createPersistent(...)` and the definition of the type, you create a persistent instance of the type.
 
+In this snippet, you can see that a transaction is started and within the transaction, an `Address` instance and a `People` instance are created. The instances are saved when the transaction is committed and closed.
 ```scala
   	tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
@@ -154,21 +147,17 @@ Finally, the transaction is committed and closed.
       val addressReference = new Reference(address)
       person.getAttributeValue("address").set(addressReference)    
 
-       // Create another Person
-      var person2 = Instance.createPersistent(personClass);
-      person2.getAttributeValue("firstName").set("Mary")
-      person2.getAttributeValue("lastName").set("Brown")
-      person2.getAttributeValue("birthDate").set(new com.objy.db.Date(1968, 2, 3))
-      person2.getAttributeValue("shoeSize").set(6)
-
-
-      tx.commit()
-      
+      tx.commit()      
   	} finally{
   		tx.close()
   	}
 ```
-
+#### Relationship creation
+A relationship is created from the `Person` instance (John Smith) to the `Address` (1 Bond St) instance using this code.
+```scala
+      val addressReference = new Reference(address)
+      person.getAttributeValue("address").set(addressReference)    
+```
 ### Reading Data
 
 
