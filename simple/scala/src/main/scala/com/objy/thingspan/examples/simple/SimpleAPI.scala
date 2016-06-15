@@ -40,13 +40,13 @@ import com.objy.db.ObjectId
  * 
  * 
  */
-object SimpleAPI {
+object SimpleAPI extends App {
   
   var connection: Connection = null
   
-  def main(args: Array[String]) = {
     /*
-     * Start ThingSpan
+     * Start ThingSpan - The ThingSpan library is written in C/C++, 
+     * this call performs the JNI binding
      */
     Objy.startup()
     
@@ -63,17 +63,36 @@ object SimpleAPI {
      */
     
     val provider = SchemaProvider.getDefaultPersistentProvider()
-    
+    /*
+     * Every operation in THingSpan is done withing a transaction
+     */
     var tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
+      /*
+       * Create the schema for a 'Person' type
+       */
       val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "firstName")
           .addAttribute(LogicalType.STRING, "lastName")
           .addAttribute(LogicalType.DATE, "birthDate")
           .addAttribute(LogicalType.INTEGER, "shoeSize")
           
-      addToOneRelationship(personClassBuilder, "address", "simple.Address")
-      
+      val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
+	            .setEncoding(Encoding.Integer.UNSIGNED)
+	            .build()
+		  
+	    /*
+		   * create a reference from 'Person' to 'Address' 
+		   */
+  		val refSpecBuilder = new ReferenceSpecificationBuilder()
+  				.setReferencedClass("simple.Address")
+  				.setIdentifierSpecification(intSpec)
+  		val dataSpec = refSpecBuilder.build()
+  		personClassBuilder.addAttribute("address", dataSpec)
+
+  		/*
+  		 * Create the schema for an 'Address' type
+  		 */
       val addressClassBuilder = new ClassBuilder("simple.Address").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "street")
           .addAttribute(LogicalType.STRING, "city")
@@ -82,7 +101,10 @@ object SimpleAPI {
           
       val addressClass = addressClassBuilder.build()
       val personClass = personClassBuilder.build();
-             
+      
+      /*
+       * save the schema
+       */
       provider.represent(addressClass);
       provider.represent(personClass);
       
@@ -202,20 +224,4 @@ object SimpleAPI {
      * Stop ThingSpan
      */
     Objy.shutdown()
-  }
-  
-  private def addToOneRelationship(builder: ClassBuilder, attrName:String, otherClassName:String) {
-
-		val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
-	            .setEncoding(Encoding.Integer.UNSIGNED)
-	            .build()
-		   
-		val refSpecBuilder = new ReferenceSpecificationBuilder()
-				.setReferencedClass(otherClassName)
-				.setIdentifierSpecification(intSpec)
-		
-		val dataSpec = refSpecBuilder.build()
-		builder.addAttribute(attrName, dataSpec)
-	}
-
 }
