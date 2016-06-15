@@ -10,8 +10,6 @@ scalaVersion := "2.10.6"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
-//mainClass in (Compile, run, packageBin) := Some("com.objy.thingspan.examples.simple.SimpleAPI")
-
 libraryDependencies ++= Seq("org.apache.spark" %% "spark-core" % "1.6.1" % "provided",
 	"org.apache.spark" %% "spark-sql" % "1.6.1" % "provided",
 	"org.scalanlp" % "breeze_2.10" % "0.12",

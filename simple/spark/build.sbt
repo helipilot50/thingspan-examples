@@ -1,21 +1,41 @@
-import AssemblyKeys._
+import sbtassembly.MergeStrategy
 
 name := "Simple ThingSpan Spark"
 
 version := "1.0"
 
+organization := "com.objectivity"
+
 scalaVersion := "2.10.6"
-
-mainClass in assembly := Some("com.objy.thingspan.examples.simple.SimpleSpark")
-
-assemblySettings
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
-libraryDependencies += "org.scalatest" % "scalatest_2.10" % "3.0.0-M15" % "test"
-
-libraryDependencies += "org.apache.spark" %% "spark-core" % "1.6.1" 
-
-libraryDependencies += "org.apache.spark" % "spark-sql_2.10" % "1.6.1"
-
-libraryDependencies += "org.scalanlp" % "breeze_2.10" % "0.12"
+libraryDependencies ++= Seq("org.apache.spark" %% "spark-core" % "1.6.1" % "provided",
+	"org.apache.spark" %% "spark-sql" % "1.6.1" % "provided",
+	"org.scalanlp" % "breeze_2.10" % "0.12",
+	"org.scalatest" %% "scalatest" % "2.2.1" % "test")
+	
+assemblyMergeStrategy in assembly := {
+    case x if Assembly.isConfigFile(x) =>
+      MergeStrategy.concat
+    case PathList(ps @ _*) if Assembly.isReadme(ps.last) || Assembly.isLicenseFile(ps.last) =>
+      MergeStrategy.rename
+   case PathList("META-INF", "maven","com.aerospike","aerospike-client", "pom.properties") =>
+      MergeStrategy.discard
+    case PathList("META-INF", xs @ _*) =>
+      (xs map {_.toLowerCase}) match {
+        case ("manifest.mf" :: Nil) | ("index.list" :: Nil) | ("dependencies" :: Nil) =>
+          MergeStrategy.discard
+        case ps @ (x :: xs) if ps.last.endsWith(".sf") || ps.last.endsWith(".dsa") =>
+          MergeStrategy.discard
+        case "plexus" :: xs =>
+          MergeStrategy.discard
+        case "services" :: xs =>
+          MergeStrategy.filterDistinctLines
+        case ("spring.schemas" :: Nil) | ("spring.handlers" :: Nil) =>
+          MergeStrategy.filterDistinctLines
+        case _ => MergeStrategy.deduplicate
+      }
+   case _ => MergeStrategy.first
+}
+	
