@@ -160,19 +160,22 @@ A relationship is created from the `Person` instance (John Smith) to the `Addres
 ```
 ### Reading Data
 
+Like writing data, reading is also done within a Transaction. You will note that the `TransactionMode.READ_ONLY` is used. This allows multiple readers without lock contention.
 
 ```scala
   	tx = new Transaction(TransactionMode.READ_ONLY)
     try {
+```
+The persistent definitions are retrieved from the Schema.
+```scala
       val ooObjClass = com.objy.data.Class.lookupClass("ooObj")
       val addressClass = com.objy.data.Class.lookupClass("simple.Address")
       val personClass = com.objy.data.Class.lookupClass("simple.Person")
 
       val lastName = "Smith"
-      
-      /*
-       * Equlivent SQL: select * from Person where lastName = 'Smith'
-       */
+```
+This next code snippet finds a `Person` by querying it's attribute of `lastName`. This is the equivalent of the SQL ` select * from Person where lastName = 'Smith'`
+```scala      
       val opExp = new OperatorExpressionBuilder("From")
             .addLiteral(new Variable(personClass))
             .addOperator(new OperatorExpressionBuilder("==")
@@ -191,7 +194,10 @@ A relationship is created from the `Person` instance (John Smith) to the `Addres
 			
 			while(pathItr.hasNext()){
   			val path = pathItr.next()
-  			
+```
+Finally, the `Person` instance and its associated `Address` instance is retrieved from the results of the query.
+
+```scala 			
   			// get the person
   			val personInstance = path.instanceValue()
   			val lastName = personInstance.getAttributeValue("lastName").stringValue
@@ -216,8 +222,9 @@ A relationship is created from the `Person` instance (John Smith) to the `Addres
   			println(s"\t$country")
    			
 			}
-
-     
+```
+Lastly the Transaction is committed and closed
+```scala   
       tx.commit();
   	} finally{
   		tx.close()
