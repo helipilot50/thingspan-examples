@@ -92,7 +92,7 @@ object SimpleSpark extends App{
    * Write some data
    */
 	
-	// create Spark schemas
+	// create schemas for Spark DataFrames 
 	val personSchema =
         StructType(
             Array(
@@ -160,13 +160,17 @@ object SimpleSpark extends App{
 	addressDF.registerTempTable("addressTable")
 		
 	/*
-	 * Spark SQL for origin airport and flight
+	 * Spark SQL for Person and Address
 	 */
-	val joinDF = sqlContext.sql("""
-SELECT personTable.personOid as person, personTable.lastName as lastName, addressTable.addressOid as address, addressTable.city as city
-from addressTable inner join personTable   
-ON city = 'Ettalone Beach' and lastName = 'Smith'
-""")
+
+  val joinDF = sqlContext.sql("""
+    SELECT personTable.personOid as person, 
+    personTable.lastName as lastName,
+    addressTable.addressOid as address, 
+    addressTable.city as city
+    FROM personTable   
+    WHERE lastName = 'Smith' and city = 'Ettalong Beach'""")
+
 	joinDF.printSchema()
 
 	joinDF.show(2)
