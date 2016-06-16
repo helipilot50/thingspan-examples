@@ -22,6 +22,7 @@ import com.objy.statement.Statement
 import com.objy.data.schemaProvider.SchemaProvider
 import com.objy.data.Reference
 import com.objy.db.ObjectId
+import com.objy.expression.language.Language
 
 
 /*
@@ -167,19 +168,21 @@ object SimpleAPI extends App {
       val lastName = "Smith"
       
       /*
-       * Equlivent SQL: select * from Person where lastName = 'Smith'
+       * Equivalent SQL: select * from Person where lastName = 'Smith'
        */
-      val opExp = new OperatorExpressionBuilder("From")
-            .addLiteral(new Variable(personClass))
-            .addOperator(new OperatorExpressionBuilder("==")
-                    .addObjectValue("lastName")
-                    .addLiteral(new Variable(lastName))
-        ).build()
-      	
-      val exprTreeBuilder = new ExpressionTreeBuilder(opExp)
-			val exprTree = exprTreeBuilder.build(LanguageRegistry.lookupLanguage("DO"))
+//      val opExp = new OperatorExpressionBuilder("From")
+//            .addLiteral(new Variable(personClass))
+//            .addOperator(new OperatorExpressionBuilder("==")
+//                    .addObjectValue("lastName")
+//                    .addLiteral(new Variable(lastName))
+//        ).build()
+//      	
+//      val exprTreeBuilder = new ExpressionTreeBuilder(opExp)
+//			val exprTree = exprTreeBuilder.build(LanguageRegistry.lookupLanguage("DO"))
 			
-			val statement = new Statement(exprTree)
+//			val statement = new Statement(exprTree)
+			val statement = new Statement(Language.DO, 
+			      "FROM @Person WHERE lastName = 'Smith'")
 			
 			val results = statement.execute()
 		

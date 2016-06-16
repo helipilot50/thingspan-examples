@@ -1,6 +1,6 @@
-ooFDNumber=35867
+ooFDNumber=63589
 ooLFDNumber=1
 ooPageSize=8192
-ooLockServerName=flight1
-ooFDDBHost=flight1
-ooFDDBFileName=/examples/simple/data/simple.fdb
+ooLockServerName=nuc
+ooFDDBHost=nuc
+ooFDDBFileName=/home/peter/git/thingspan-examples/simple/data/simple.fdb
