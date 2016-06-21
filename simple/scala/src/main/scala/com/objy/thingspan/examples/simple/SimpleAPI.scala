@@ -6,23 +6,20 @@ import com.objy.data.ClassBuilder
 import com.objy.data.Encoding
 import com.objy.data.Instance
 import com.objy.data.LogicalType
-import com.objy.db.Date
+import com.objy.data.Reference
 import com.objy.data.Storage
 import com.objy.data.Variable
 import com.objy.data.dataSpecificationBuilder.IntegerSpecificationBuilder
 import com.objy.data.dataSpecificationBuilder.ReferenceSpecificationBuilder
+import com.objy.data.schemaProvider.SchemaProvider
 import com.objy.db.Connection
+import com.objy.db.Date
 import com.objy.db.Objy
 import com.objy.db.Transaction
 import com.objy.db.TransactionMode
-import com.objy.expression.ExpressionTreeBuilder
-import com.objy.expression.OperatorExpressionBuilder
-import com.objy.expression.language.LanguageRegistry
-import com.objy.statement.Statement
-import com.objy.data.schemaProvider.SchemaProvider
-import com.objy.data.Reference
-import com.objy.db.ObjectId
 import com.objy.expression.language.Language
+import com.objy.statement.Statement
+import com.objy.expression.language.LanguageRegistry
 
 
 /*
@@ -44,6 +41,7 @@ import com.objy.expression.language.Language
 object SimpleAPI extends App {
   
     var connection: Connection = null
+    var language = LanguageRegistry.lookupLanguage("DO") 
   
     /*
      * Start ThingSpan - The ThingSpan library is written in C/C++, 
@@ -161,38 +159,28 @@ object SimpleAPI extends App {
      */
   	tx = new Transaction(TransactionMode.READ_ONLY)
     try {
+      
+      // Read the persistent types
       val ooObjClass = com.objy.data.Class.lookupClass("ooObj")
       val addressClass = com.objy.data.Class.lookupClass("simple.Address")
       val personClass = com.objy.data.Class.lookupClass("simple.Person")
-
-      val lastName = "Smith"
       
-      /*
-       * Equivalent SQL: select * from Person where lastName = 'Smith'
-       */
-//      val opExp = new OperatorExpressionBuilder("From")
-//            .addLiteral(new Variable(personClass))
-//            .addOperator(new OperatorExpressionBuilder("==")
-//                    .addObjectValue("lastName")
-//                    .addLiteral(new Variable(lastName))
-//        ).build()
-//      	
-//      val exprTreeBuilder = new ExpressionTreeBuilder(opExp)
-//			val exprTree = exprTreeBuilder.build(LanguageRegistry.lookupLanguage("DO"))
+      // Form a DO query for a Person where the  last name is Smith
+			val statement = new Statement(language,
+			      "FROM simple.Person WHERE lastName == 'Smith' return *")
 			
-//			val statement = new Statement(exprTree)
-			val statement = new Statement(Language.DO, 
-			      "FROM @Person WHERE lastName = 'Smith'")
-			
+      // Execute the statement
 			val results = statement.execute()
 		
-			val pathItr = results.sequenceValue().iterator()
+			//get the Iterator for the results 
+			val path = results.sequenceValue().iterator()
 			
-			while(pathItr.hasNext()){
-  			val path = pathItr.next()
+			// iterate over the returned path
+			while(path.hasNext()){
+  			val segment = path.next()
   			
   			// get the person
-  			val personInstance = path.instanceValue()
+  			val personInstance = segment.instanceValue()
   			val lastName = personInstance.getAttributeValue("lastName").stringValue
   			val firstName = personInstance.getAttributeValue("firstName").stringValue
   			val shoeSize = personInstance.getAttributeValue("shoeSize").intValue()
@@ -216,7 +204,6 @@ object SimpleAPI extends App {
    			
 			}
 
-     
       tx.commit();
   	} finally{
   		tx.close()
