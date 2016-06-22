@@ -72,7 +72,6 @@ object SimpleAPI extends App {
       val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "firstName")
           .addAttribute(LogicalType.STRING, "lastName")
-          .addAttribute(LogicalType.DATE, "birthDate")
           .addAttribute(LogicalType.INTEGER, "shoeSize")
           
       val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
@@ -117,37 +116,16 @@ object SimpleAPI extends App {
      */
   	tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
-      // Get the persistent class for Address
-      val addressClass = com.objy.data.Class.lookupClass("simple.Address")
-      // Create an persistent instance
-      var address = Instance.createPersistent(addressClass);
       
-      // Add some attribute/field values to address
-      address.getAttributeValue("street").set("1 Bond St")
-      address.getAttributeValue("city").set("Ettalong Beach")
-      address.getAttributeValue("state").set("NSW")
-      address.getAttributeValue("country").set("Australia")
+      var createStatement = new Statement(language, 
+        """CREATE @simple.Person {firstName = 'John', lastName = 'Smith', shoeSize = 12, address = 
+              CREATE @simple.Address {street = '1 Bond St', city = 'Ettalong Beach', state = 'NSW', country = 'Australia'}}""")
+      var results = createStatement.execute()        
 
-      // Get the persistent class for Person
-      val personClass = com.objy.data.Class.lookupClass("simple.Person")
-      // Create an persistent instance and add some attribute/field values to person
-      var person = Instance.createPersistent(personClass);
-      person.getAttributeValue("firstName").set("John")
-      person.getAttributeValue("lastName").set("Smith")
-      person.getAttributeValue("birthDate").set(new com.objy.db.Date(1970, 1, 1))
-      person.getAttributeValue("shoeSize").set(12)
-      // Relate address to person
-      val addressReference = new Reference(address)
-      person.getAttributeValue("address").set(addressReference)    
-
-       // Create another Person
-      var person2 = Instance.createPersistent(personClass);
-      person2.getAttributeValue("firstName").set("Mary")
-      person2.getAttributeValue("lastName").set("Brown")
-      person2.getAttributeValue("birthDate").set(new com.objy.db.Date(1968, 2, 3))
-      person2.getAttributeValue("shoeSize").set(6)
-
-
+      createStatement = new Statement(language, 
+        """CREATE @simple.Person {firstName = 'Mary', lastName = 'Brown', shoeSize = 6 }""")
+      results = createStatement.execute() 
+      
       tx.commit()
       
   	} finally{
@@ -184,9 +162,7 @@ object SimpleAPI extends App {
   			val lastName = personInstance.getAttributeValue("lastName").stringValue
   			val firstName = personInstance.getAttributeValue("firstName").stringValue
   			val shoeSize = personInstance.getAttributeValue("shoeSize").intValue()
-  			val birthDate = personInstance.getAttributeValue("birthDate").dateValue
   			println(s"Found $firstName $lastName")
-  			println(s"\tBirth Date: $birthDate")
   			println(s"\tShoe Size: $shoeSize")
   			
   			// get the reference to the address
