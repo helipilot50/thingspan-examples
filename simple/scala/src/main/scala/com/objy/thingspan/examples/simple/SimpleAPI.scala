@@ -72,6 +72,7 @@ object SimpleAPI extends App {
       val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "firstName")
           .addAttribute(LogicalType.STRING, "lastName")
+          .addAttribute(LogicalType.DATE, "birthDate")
           .addAttribute(LogicalType.INTEGER, "shoeSize")
           
       val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
@@ -118,12 +119,12 @@ object SimpleAPI extends App {
     try {
       
       var createStatement = new Statement(language, 
-        """CREATE @simple.Person {firstName = 'John', lastName = 'Smith', shoeSize = 12, address = 
+        """CREATE @simple.Person {firstName = 'John', lastName = 'Smith', birthDate = 1970-01-01, shoeSize = 12, address = 
               CREATE @simple.Address {street = '1 Bond St', city = 'Ettalong Beach', state = 'NSW', country = 'Australia'}}""")
       var results = createStatement.execute()        
 
       createStatement = new Statement(language, 
-        """CREATE @simple.Person {firstName = 'Mary', lastName = 'Brown', shoeSize = 6 }""")
+        """CREATE @simple.Person {firstName = 'Mary', lastName = 'Brown', birthDate = 1968-03-02, shoeSize = 6 }""")
       results = createStatement.execute() 
       
       tx.commit()
@@ -161,8 +162,10 @@ object SimpleAPI extends App {
   			val personInstance = segment.instanceValue()
   			val lastName = personInstance.getAttributeValue("lastName").stringValue
   			val firstName = personInstance.getAttributeValue("firstName").stringValue
-  			val shoeSize = personInstance.getAttributeValue("shoeSize").intValue()
+  			val birthDate = personInstance.getAttributeValue("birthDate").dateValue
+        val shoeSize = personInstance.getAttributeValue("shoeSize").intValue()
   			println(s"Found $firstName $lastName")
+  			println(s"\tBirth Date: $birthDate")
   			println(s"\tShoe Size: $shoeSize")
   			
   			// get the reference to the address
