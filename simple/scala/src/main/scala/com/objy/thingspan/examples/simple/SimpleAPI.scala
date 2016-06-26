@@ -1,6 +1,5 @@
 package com.objy.thingspan.examples.simple
 
-import java.util.Date
 
 import com.objy.data.ClassBuilder
 import com.objy.data.Encoding
@@ -62,47 +61,39 @@ object SimpleAPI extends App {
     
     val provider = SchemaProvider.getDefaultPersistentProvider()
     /*
-     * Every operation in THingSpan is done withing a transaction
+     * Every operation in ThingSpan is done within a transaction
      */
     var tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
-      /*
-       * Create the schema for a 'Person' type
-       */
+      // Create the schema for a 'Person' type
       val personClassBuilder = new ClassBuilder("simple.Person").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "firstName")
           .addAttribute(LogicalType.STRING, "lastName")
           .addAttribute(LogicalType.DATE, "birthDate")
           .addAttribute(LogicalType.INTEGER, "shoeSize")
-          
+      // specify a Long Integer (64 bits) for 'shoeSize'    
       val intSpec = new IntegerSpecificationBuilder(Storage.Integer.B64)
 	            .setEncoding(Encoding.Integer.UNSIGNED)
 	            .build()
-		  
-	    /*
-		   * create a reference from 'Person' to 'Address' 
-		   */
+		  // create a reference from 'Person' to 'Address' 
   		val refSpecBuilder = new ReferenceSpecificationBuilder()
   				.setReferencedClass("simple.Address")
   				.setIdentifierSpecification(intSpec)
   		val dataSpec = refSpecBuilder.build()
   		personClassBuilder.addAttribute("address", dataSpec)
 
-  		/*
-  		 * Create the schema for an 'Address' type
-  		 */
+  		// Create the schema for an 'Address' type
       val addressClassBuilder = new ClassBuilder("simple.Address").setSuperclass("ooObj")
           .addAttribute(LogicalType.STRING, "street")
           .addAttribute(LogicalType.STRING, "city")
           .addAttribute(LogicalType.STRING, "state")
           .addAttribute(LogicalType.STRING, "country")
-          
+      
+      // build both types
       val addressClass = addressClassBuilder.build()
       val personClass = personClassBuilder.build();
       
-      /*
-       * save the schema
-       */
+      // save the schema
       provider.represent(addressClass);
       provider.represent(personClass);
       
@@ -117,15 +108,32 @@ object SimpleAPI extends App {
      */
   	tx = new Transaction(TransactionMode.READ_UPDATE)
     try {
-      
+      // create a 'Person' with an 'Address'
       var createStatement = new Statement(language, 
         """CREATE @simple.Person {firstName = 'John', lastName = 'Smith', birthDate = 1970-01-01, shoeSize = 12, address = 
               CREATE @simple.Address {street = '1 Bond St', city = 'Ettalong Beach', state = 'NSW', country = 'Australia'}}""")
       var results = createStatement.execute()        
 
+      // create a 'Person' with no 'Address'
       createStatement = new Statement(language, 
         """CREATE @simple.Person {firstName = 'Mary', lastName = 'Brown', birthDate = 1968-03-02, shoeSize = 6 }""")
       results = createStatement.execute() 
+      
+      // create a reusable Statement with variable substitution 
+      var substitutionStatement = new Statement(language, 
+        """CREATE @simple.Person {firstName = $first, lastName = $last, birthDate = $dob, shoeSize = $shoe }""")
+
+      substitutionStatement.setVariableValue("first", new Variable("Bob"))
+      substitutionStatement.setVariableValue("last", new Variable("Hawke"))
+      substitutionStatement.setVariableValue("dob", new Variable("1948-04-27"))
+      substitutionStatement.setVariableValue("shoe", new Variable(14L))
+      results = substitutionStatement.execute() 
+      
+      substitutionStatement.setVariableValue("first", new Variable("Paul"))
+      substitutionStatement.setVariableValue("last", new Variable("Keating"))
+      substitutionStatement.setVariableValue("dob", new Variable("1952-10-02"))
+      substitutionStatement.setVariableValue("shoe", new Variable(10L))
+      results = substitutionStatement.execute() 
       
       tx.commit()
       
